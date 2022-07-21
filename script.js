@@ -1,63 +1,65 @@
-const addBtn = document.getElementById('add')
+const form = document.getElementById('form')
+const input = document.getElementById('input')
+const todosUL = document.getElementById('todos')
 
-const notes = JSON.parse(localStorage.getItem('notes'))
+const todos = JSON.parse(localStorage.getItem('todos'))
 
-if(notes) {
-    notes.forEach(note => addNewNote(note))
+if(todos) {
+    todos.forEach(todo => addTodo(todo))
 }
 
-addBtn.addEventListener('click', () => addNewNote())
+form.addEventListener('submit', (e) => {
+    e.preventDefault()
 
-function addNewNote(text = '') {
-    const note = document.createElement('div')
-    note.classList.add('note')
+    addTodo()
+})
 
-    note.innerHTML = `
-    <div class="tools">
-        <button class="edit"><i class="fas fa-edit"></i></button>
-        <button class="delete"><i class="fas fa-trash-alt"></i></button>
-    </div>
+function addTodo(todo) {
+    let todoText = input.value
 
-    <div class="main ${text ? "" : "hidden"}"></div>
-    <textarea class="${text ? "hidden" : ""}"></textarea>
-    `
+    if(todo) {
+        todoText = todo.text
+    }
 
-    const editBtn = note.querySelector('.edit')
-    const deleteBtn = note.querySelector('.delete')
-    const main = note.querySelector('.main')
-    const textArea = note.querySelector('textarea')
+    if(todoText) {
+        const todoEl = document.createElement('li')
+        if(todo && todo.completed) {
+            todoEl.classList.add('completed')
+        }
 
-    textArea.value = text
-    main.innerHTML = marked(text)
+        todoEl.innerText = todoText
 
-    deleteBtn.addEventListener('click', () => {
-        note.remove()
+        todoEl.addEventListener('click', () => {
+            todoEl.classList.toggle('completed')
+            updateLS()
+        }) 
 
-        updateLS()
-    })
+        todoEl.addEventListener('contextmenu', (e) => {
+            e.preventDefault()
 
-    editBtn.addEventListener('click', () => {
-        main.classList.toggle('hidden')
-        textArea.classList.toggle('hidden')
-    })
+            todoEl.remove()
+            updateLS()
+        }) 
 
-    textArea.addEventListener('input', (e) => {
-        const { value } = e.target
+        todosUL.appendChild(todoEl)
 
-        main.innerHTML = marked(value)
+        input.value = ''
 
         updateLS()
-    })
-
-    document.body.appendChild(note)
+    }
 }
 
 function updateLS() {
-    const notesText = document.querySelectorAll('textarea')
+    todosEl = document.querySelectorAll('li')
 
-    const notes = []
+    const todos = []
 
-    notesText.forEach(note => notes.push(note.value))
+    todosEl.forEach(todoEl => {
+        todos.push({
+            text: todoEl.innerText,
+            completed: todoEl.classList.contains('completed')
+        })
+    })
 
-    localStorage.setItem('notes', JSON.stringify(notes))
+    localStorage.setItem('todos', JSON.stringify(todos))
 }
